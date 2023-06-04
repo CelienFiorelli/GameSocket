@@ -36,7 +36,6 @@ server.listen(port, () => {
         useUnifiedTopology: true
     }).then(async () => {
         console.log("[+] Database connected");
-        console.log("test room: UGS")
     })
         .catch((err) => {
             console.error(`Error\n${err}`);
