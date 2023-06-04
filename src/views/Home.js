@@ -11,7 +11,6 @@ function Home() {
         if (game.game) {
             return navigate(`/game/${gameId}`);
         }
-        setGameId(null);
     }
     return (
         <div>

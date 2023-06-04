@@ -4,18 +4,25 @@ import { Routes, Route, BrowserRouter } from "react-router-dom";
 
 import Home from './views/Home';
 import Game from './views/Game';
+import SocketProvider from './components/SocketProvider';
 import UserProvider from './components/UserProvider';
 
 function App() {
+	document.body.style.backgroundColor = "black";
+	document.body.style.color = "white";
 	return (
-		<UserProvider>
-			<BrowserRouter>
-				<Routes>
-					<Route path="/" element={<Home />}></Route>
-					<Route path="/game/:roomId" element={<Game />}></Route>
-				</Routes>
-			</BrowserRouter>
-		</UserProvider>
+		<BrowserRouter>
+			<Routes>
+				<Route path="/" Component={Home}></Route>
+				<Route path="/game/:roomId" element={
+					<UserProvider>
+						<SocketProvider>
+							<Game />
+						</SocketProvider>
+					</UserProvider>
+				}></Route>
+			</Routes>
+		</BrowserRouter>
 	);
 }
 
