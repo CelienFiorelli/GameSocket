@@ -3,13 +3,17 @@ import { UserContext } from "../components/UserProvider";
 import { useParams } from "react-router-dom";
 import { SocketContext } from "../components/SocketProvider";
 
-function Game() {
+function RoomContainer({ children }) {
     const { roomId } = useParams();
     const {user, updateUser} = useContext(UserContext);
-    const {socket, users, messages} = useContext(SocketContext);
+    const {socket, users, messages, setRoomId} = useContext(SocketContext);
     const [username, setUsername] = useState(null);
     const [message, setMessage] = useState(null);
 
+    useEffect(() => {
+        setRoomId(roomId);
+    }, [])
+    
     const sendMessage = () => {
         if (!message) return;
         socket.emit("sendMessage", message);
@@ -30,18 +34,7 @@ function Game() {
     return (
         <div style={{display: "flex", flexDirection: "row", height: "100vh"}}>
             <div style={{ width: "80%", height: "100%"}}>
-                <div>
-                    user: {user}, game: {roomId}
-                    {users.map((u, i) => <div key={"user"+i}>{u}</div>)}
-                </div>
-                <div>
-                    <div>
-                        Jeux 1
-                        <button type="button" onClick={() => socket.emit("setGame", "gameType1")}>
-                            Go
-                        </button>
-                    </div>
-                </div>
+                {children}
             </div>
             <div style={{ width: "20%", height: "100%", borderLeft: "1px solid white"}}>
                 <div style={{ height: "95%"}}>
@@ -69,4 +62,4 @@ function Game() {
         </div>
     )
 } 
-export default Game;
+export default RoomContainer;

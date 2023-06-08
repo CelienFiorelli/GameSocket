@@ -99,19 +99,27 @@ io.of("/").on('connection', async (socket) => {
         })
     });
 
+    socket.on('setGame', (data) => {
+        io.sockets.adapter.rooms.get(room.identifier).forEach(clientSocketId => {
+            io.to(clientSocketId).emit('setGame', data);
+        })
+    });
+
     socket.on('disconnect', async () => {
         console.log('user disconnected', id);
         const player = await Player.findOne({ id_ws: id});
         if (!player) return;
 
         //on previens les autres qu'un gars est partie
-        io.sockets.adapter.rooms.get(room.identifier).forEach(clientSocketId => {
-            if (clientSocketId != id) {
-                io.to(clientSocketId).emit("userLeft", player.username);
-            }
-        })
-
-        
+        const room_ws = io.sockets.adapter.rooms.get(room.identifier)
+        if (room_ws) {
+            room_ws.forEach(clientSocketId => {
+                if (clientSocketId != id) {
+                    io.to(clientSocketId).emit("userLeft", player.username);
+                }
+            })
+            socket.leave(room.identifier)
+        }
         await player.deleteOne();
         console.log("close after delete")
     });

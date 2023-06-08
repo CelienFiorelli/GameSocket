@@ -17,14 +17,14 @@ function Home() {
     const joinGame = async () => {
         const game = await getGame(gameId);
         if (game.game) {
-            return navigate(`/game/${gameId}`);
+            return navigate(`/room/${gameId}`);
         }
     }
 
     const joinNewGame = async () => {
         const identifier = await createGame();
         if (identifier) {
-            return navigate(`/game/${identifier}`);
+            return navigate(`/room/${identifier}`);
         }
     }
 

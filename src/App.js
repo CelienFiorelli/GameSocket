@@ -3,26 +3,35 @@ import './App.css';
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 
 import Home from './views/Home';
-import Game from './views/Game';
+import RoomContainer from './views/RoomContainer';
 import SocketProvider from './components/SocketProvider';
 import UserProvider from './components/UserProvider';
+import RoomHome from './components/RoomHome';
+import RoomGame from './components/RoomGame';
 
 function App() {
 	document.body.style.backgroundColor = "black";
 	document.body.style.color = "white";
 	return (
-		<BrowserRouter>
-			<Routes>
-				<Route path="/" Component={Home}></Route>
-				<Route path="/game/:roomId" element={
-					<UserProvider>
-						<SocketProvider>
-							<Game />
-						</SocketProvider>
-					</UserProvider>
-				}></Route>
-			</Routes>
-		</BrowserRouter>
+		<UserProvider>
+			<SocketProvider>
+				<BrowserRouter>
+					<Routes>
+						<Route path="/" Component={Home}></Route>
+						<Route path="/room/:roomId" element={
+							<RoomContainer>
+								<RoomHome/>
+							</RoomContainer>
+						}/>
+						<Route path="/game/:gameType/:roomId" element={
+							<RoomContainer>
+								<RoomGame/>
+							</RoomContainer>
+						}/>
+					</Routes>
+				</BrowserRouter>
+			</SocketProvider>
+		</UserProvider>
 	);
 }
 
