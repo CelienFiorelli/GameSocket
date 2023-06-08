@@ -30,8 +30,18 @@ function Game() {
     return (
         <div style={{display: "flex", flexDirection: "row", height: "100vh"}}>
             <div style={{ width: "80%", height: "100%"}}>
-                user: {user}, game: {roomId}
-                {users.map((u, i) => <div key={"user"+i}>{u}</div>)}
+                <div>
+                    user: {user}, game: {roomId}
+                    {users.map((u, i) => <div key={"user"+i}>{u}</div>)}
+                </div>
+                <div>
+                    <div>
+                        Jeux 1
+                        <button type="button" onClick={() => socket.emit("setGame", "gameType1")}>
+                            Go
+                        </button>
+                    </div>
+                </div>
             </div>
             <div style={{ width: "20%", height: "100%", borderLeft: "1px solid white"}}>
                 <div style={{ height: "95%"}}>
