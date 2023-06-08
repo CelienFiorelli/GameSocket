@@ -16,8 +16,9 @@ function SocketProvider({children}) {
         socket_.on('connect', () => {
             console.log('connected to server');
         });
-        
+
         setSocket(socket_)
+
     }, [])
 
     useEffect(() => {

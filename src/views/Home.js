@@ -48,7 +48,7 @@ function Home() {
                 <div style={{ border: "1px solid white", backgroundColor: "#20202080", padding: 4, borderRadius: 4}}>
                     Salles existantes:
                     {games && games.map(g =>
-                        <div>{g}</div>
+                        <div key={g}>{g}</div>
                     )}
 
                 </div>

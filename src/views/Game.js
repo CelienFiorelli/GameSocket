@@ -9,6 +9,11 @@ function Game() {
     const {socket, users, messages} = useContext(SocketContext);
     const [username, setUsername] = useState(null);
     const [message, setMessage] = useState(null);
+
+    const sendMessage = () => {
+        if (!message) return;
+        socket.emit("sendMessage", message);
+    }
     
     if (!user) {
         return (
@@ -23,22 +28,33 @@ function Game() {
     }
 
     return (
-        <div style={{display: "flex", flexDirection: "row", gap: 32}}>
-            <div>
+        <div style={{display: "flex", flexDirection: "row", height: "100vh"}}>
+            <div style={{ width: "80%", height: "100%"}}>
                 user: {user}, game: {roomId}
-                {users.map(u => <div>{u}</div>)}
+                {users.map((u, i) => <div key={"user"+i}>{u}</div>)}
             </div>
-            <div>
-                <div>
-                    {messages.map(m => <div>{m.username}: {m.message}</div>)}
+            <div style={{ width: "20%", height: "100%", borderLeft: "1px solid white"}}>
+                <div style={{ height: "95%"}}>
+                    <div style={{ height: "100%", overflowY: "scroll", width: "100%", display: "flex", flexDirection: "column", alignItems: "center"}}>
+                        {messages.map((m, i) =>
+                            <div key={"msg"+i} style={{width: "95%", overflowWrap: "break-word"}}>
+                                <div style={{display: "flex", flexDirection: "row", gap: 4, alignItems: "center"}}>
+                                    <div style={{color: m.player.color}}>{m.player.username}</div>
+                                    <div style={{color: "#808080", fontSize: "10px"}}>{new Date(m.timestamp).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</div>
+                                </div>
+                                <div>{m.message}</div>
+                            </div>
+                        )}
+                    </div>
                 </div>
-                <div style={{display: "flex", flexDirection: "row"}}>
-                    Chat :
-                    <input type="text" onChange={(e) => setMessage(e.target.value)}/>
-                    <button onClick={() => socket.emit("sendMessage", message)}>
-                        Envoyer
-                    </button>
-                </div>  
+                <div style={{height: "5%"}}>
+                    <div style={{display: "flex", flexDirection: "row", height: "100%"}}>
+                        <input type="text" style={{width: "100%"}} onChange={(e) => setMessage(e.target.value)}/>
+                        <button onClick={() => sendMessage()}>
+                            Envoyer
+                        </button>
+                    </div>
+                </div>
             </div>  
         </div>
     )

@@ -6,6 +6,8 @@ const http = require("http");
 const socketIo = require('socket.io');
 const Game = require('./models/Game');
 const Player = require('./models/Player');
+const { getColor } = require('./utils/getColor');
+let process = require('process');
 
 const ip = "192.168.0.140"
 // const ip = "localhost"
@@ -19,6 +21,10 @@ const io = socketIo(server, {
     }
 });
 
+server.on('close', () => {
+    console.log("close");
+    io.close();
+});
 
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', `http://${ip}:3000`);
@@ -63,16 +69,17 @@ for (const file of commandFilesPost) {
 }
 
 
-io.on('connection', async (socket) => {
+io.of("/").on('connection', async (socket) => {
     const id = socket.client.id;
     console.log(`${id} user connected`);
     const room = await Game.findOne({ identifier: socket.handshake.query.room });
+    
 
     const player = await Player.find({ id_room: room })
     socket.emit('gameSetup', {users: player.map(p => p.username) })
 
-    socket.on('setPseudo', (data) => {
-        Player.create({ id_ws: id, username: data, id_room: room})
+    socket.on('setPseudo', async (data) => {
+        Player.create({ id_ws: id, username: data, id_room: room, color: await getColor(room._id)})
 
         //on previens les autres qu'un gars à rejoins
         io.sockets.sockets.forEach((clientSocket) => {
@@ -88,9 +95,8 @@ io.on('connection', async (socket) => {
         const player = await Player.findOne({ id_ws: id});
 
         io.sockets.sockets.forEach((clientSocket) => {
-            return clientSocket.emit('receiveMessage', {username: player.username, message: data, timestamp: Date.now() });
+            return clientSocket.emit('receiveMessage', {player: player, message: data, timestamp: Date.now() });
         })
-            
     });
 
     socket.on('disconnect', async () => {
@@ -98,14 +104,23 @@ io.on('connection', async (socket) => {
         const player = await Player.findOne({ id_ws: id});
         if (!player) return;
 
-
         //on previens les autres qu'un gars est partie
         io.sockets.sockets.forEach((clientSocket) => {
             if (clientSocket.client.id !== id) {
                 clientSocket.emit('userLeft', player.username);
             }
-        });
-        player.deleteOne();
+          });
+
+        
+        await player.deleteOne();
+        console.log("close after delete")
     });
 
 });
+
+
+process.on('SIGINT', async () => {
+    io.close()
+    await Player.deleteMany();
+    process.exit(process.pid)
+}); 
