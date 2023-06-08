@@ -70,23 +70,23 @@ for (const file of commandFilesPost) {
 
 
 io.of("/").on('connection', async (socket) => {
-    const id = socket.client.id;
+    const id = socket.id;
     console.log(`${id} user connected`);
     const room = await Game.findOne({ identifier: socket.handshake.query.room });
-    
+    socket.join(room.identifier)
 
     const player = await Player.find({ id_room: room })
     socket.emit('gameSetup', {users: player.map(p => p.username) })
 
     socket.on('setPseudo', async (data) => {
-        Player.create({ id_ws: id, username: data, id_room: room, color: await getColor(room._id)})
+        await Player.create({ id_ws: id, username: data, id_room: room, color: await getColor(room._id)})
 
         //on previens les autres qu'un gars à rejoins
-        io.sockets.sockets.forEach((clientSocket) => {
-            if (clientSocket.client.id !== id) {
-                clientSocket.emit('userJoin', data);
+        io.sockets.adapter.rooms.get(room.identifier).forEach(clientSocketId => {
+            if (clientSocketId != id) {
+                io.to(clientSocketId).emit("userJoin", data);
             }
-          });
+        })
             
     });
 
@@ -94,8 +94,8 @@ io.of("/").on('connection', async (socket) => {
     socket.on('sendMessage', async (data) => {
         const player = await Player.findOne({ id_ws: id});
 
-        io.sockets.sockets.forEach((clientSocket) => {
-            return clientSocket.emit('receiveMessage', {player: player, message: data, timestamp: Date.now() });
+        io.sockets.adapter.rooms.get(room.identifier).forEach(clientSocketId => {
+            io.to(clientSocketId).emit('receiveMessage', {player: player, message: data, timestamp: Date.now() });
         })
     });
 
@@ -105,11 +105,11 @@ io.of("/").on('connection', async (socket) => {
         if (!player) return;
 
         //on previens les autres qu'un gars est partie
-        io.sockets.sockets.forEach((clientSocket) => {
-            if (clientSocket.client.id !== id) {
-                clientSocket.emit('userLeft', player.username);
+        io.sockets.adapter.rooms.get(room.identifier).forEach(clientSocketId => {
+            if (clientSocketId != id) {
+                io.to(clientSocketId).emit("userLeft", player.username);
             }
-          });
+        })
 
         
         await player.deleteOne();
@@ -117,10 +117,3 @@ io.of("/").on('connection', async (socket) => {
     });
 
 });
-
-
-process.on('SIGINT', async () => {
-    io.close()
-    await Player.deleteMany();
-    process.exit(process.pid)
-}); 
